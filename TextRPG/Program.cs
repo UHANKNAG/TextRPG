@@ -1,5 +1,7 @@
-﻿using System.Reflection.Emit;
+﻿using System.Net.NetworkInformation;
+using System.Reflection.Emit;
 using System.Xml.Linq;
+using static System.Formats.Asn1.AsnWriter;
 using static TextRPG.Inventory;
 using static TextRPG.Store;
 
@@ -8,12 +10,12 @@ namespace TextRPG
     public class Status
     {
         public int level = 1;
-        public string name = "Chad";
+        public string name = "";
         public string job = "전사";
         public int offense = 10;
         public int defense = 5;
         public int stamina = 100;
-        public int gold = 1500;
+        public int gold = 30000;
 
         public void DisplayStatus()
         {
@@ -33,6 +35,7 @@ namespace TextRPG
             Console.WriteLine("원하시는 행동을 입력해 주세요.");
             int input = int.Parse(Console.ReadLine());
             if (input == 0)
+                Console.Clear();
                 return;
         }
     }
@@ -64,8 +67,16 @@ namespace TextRPG
             Console.WriteLine("인벤토리 \n보유 중인 아이템을 관리할 수 있습니다.\n");
 
             Console.WriteLine("[아이템 목록]");
+            for (int i = 0; i < items.Length; i++)
+            {
+                if (items[i].Equals(default(Item)))
+                {
+                    break;
+                }
+                items[i].ItemInfo();
+            }
             foreach (Item t in items) {
-                t.ItemInfo();
+                
             }
             Console.WriteLine();
 
@@ -76,13 +87,15 @@ namespace TextRPG
             int input = int.Parse(Console.ReadLine());
             switch (input)
             {
-                case 0: return;
+                case 0:
+                    Console.Clear();
+                    return;
                 case 1: return;
             }     
         }
     }
 
-    public class Store()
+    public class Store
     {
         public struct Product
         {
@@ -194,6 +207,7 @@ namespace TextRPG
             if (isBuy)
             {
                 if (input == 0) {
+                    Console.Clear();
                     return;
                 }
                 else
@@ -230,19 +244,18 @@ namespace TextRPG
 
         public void BuyProduct(int input, Status status, Inventory inventory)
         {
-            int gold = status.gold;
             Product p = products[input-1];
             Inventory inv = inventory;
             if (input > 0 && input < products.Length) {
                 if(!products[input-1].isSoldout) // 안 팔린 경우
                 {
                     // 보유 금액이 충분하다면
-                    if(p.price <= gold)
+                    if(p.price <= status.gold)
                     {
                         // 문구 출력
                         Console.WriteLine("구매를 완료하였습니다.");
                         // 재화 감소
-                        gold = gold - p.price;
+                        status.gold = status.gold - p.price;
                         // 인벤토리에 아이템 추가
                         for (int i = 0; i < inv.items.Length; i++) {
                             if (inv.items[i].Equals(default(Item))) {
@@ -277,16 +290,34 @@ namespace TextRPG
 
     internal class Program
     {
+        bool isEnd = false;
+
         static void Main(string[] args)
         {
+            Program p = new Program();
             Status status = new Status();
             Inventory inventory = new Inventory();
             Store store = new Store();
-            bool isSuccess = false; 
 
             Console.WriteLine("스파르타 마을에 오신 여러분 환영합니다.");
             Console.WriteLine("이곳에서 던전으로 들어가기 전 활동을 할 수 있습니다.\n");
-            Console.WriteLine("1. 상태 보기 \n2. 인벤토리 \n3. 상점\n");
+            Console.WriteLine("이름을 입력해 주세요");
+            status.name = Console.ReadLine();
+            Console.WriteLine($"입력하신 이름은 {status.name}입니다.");
+            Console.WriteLine();
+
+            do
+            {
+                StartGame(p, status, inventory, store);
+            } while (!p.isEnd);
+            
+        }
+
+        static void StartGame(Program p, Status status, Inventory inventory, Store store)
+        {
+            bool isSuccess = false;
+
+            Console.WriteLine("1. 상태 보기 \n2. 인벤토리 \n3. 상점\n0. 끝내기\n");
             Console.WriteLine("원하시는 행동을 입력해 주세요.");
 
             string input = Console.ReadLine();
@@ -294,9 +325,14 @@ namespace TextRPG
 
             if (isSuccess)
             {
-                if (select == 1 || select == 2 || select == 3) {
+                if (select >= 0 && select < 4)
+                {
                     switch (select)
                     {
+                        case 0:
+                            p.isEnd = true;
+                            Console.WriteLine("게임을 종료합니다.");
+                            break;
                         case 1:
                             status.DisplayStatus();
                             break;
@@ -313,7 +349,8 @@ namespace TextRPG
                     Console.WriteLine("잘못된 입력입니다.");
                 }
             }
-            else {
+            else
+            {
                 Console.WriteLine("잘못된 입력입니다.");
             }
         }
