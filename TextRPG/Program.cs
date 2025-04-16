@@ -1,4 +1,5 @@
-﻿using System.Net.NetworkInformation;
+﻿using System.ComponentModel.Design;
+using System.Net.NetworkInformation;
 using System.Reflection.Emit;
 using System.Xml.Linq;
 using static System.Formats.Asn1.AsnWriter;
@@ -19,6 +20,8 @@ namespace TextRPG
 
         public void DisplayStatus()
         {
+            bool isSuccess = false; // 입력 관리
+
             Console.Clear();
             Console.WriteLine("상태 보기 \n캐릭터의 정보가 표시됩니다.\n");
 
@@ -33,10 +36,27 @@ namespace TextRPG
             Console.WriteLine("0. 나가기\n");
 
             Console.WriteLine("원하시는 행동을 입력해 주세요.");
-            int input = int.Parse(Console.ReadLine());
-            if (input == 0)
+            isSuccess = int.TryParse(Console.ReadLine(), out int input);
+
+            if (isSuccess)
+            {
+                if (input == 0)
+                {
+                    Console.Clear();
+                    return;
+                }
+                else
+                {
+                    Console.Clear();
+                    Console.WriteLine("잘못된 입력입니다.");
+                }
+            }
+            else
+            {
                 Console.Clear();
-                return;
+                Console.WriteLine("잘못된 입력입니다.");
+            }
+            
         }
     }
 
@@ -44,6 +64,7 @@ namespace TextRPG
     {
         public Item[] items = new Item[6];
         bool isInstall = false; // 장착 관리
+        bool isSuccess = false; // 입력 관리
 
         public struct Item {
             public bool isEquip;   // 장비를 장착했는가?
@@ -87,8 +108,8 @@ namespace TextRPG
             Console.Clear();
             Console.Write("인벤토리");
             if (isInstall)
-                Console.WriteLine(" - 장착 관리");
-            Console.WriteLine("보유 중인 아이템을 관리할 수 있습니다.\n");
+                Console.Write(" - 장착 관리");
+            Console.WriteLine("\n보유 중인 아이템을 관리할 수 있습니다.\n");
 
             Console.WriteLine("[아이템 목록]");
             PrintItem(isInstall);
@@ -106,35 +127,48 @@ namespace TextRPG
             }
 
             Console.WriteLine("원하시는 행동을 입력해 주세요.");
-            int input = int.Parse(Console.ReadLine());
-            if (isInstall)
-            {
-                if (input == 0)
+            isSuccess = int.TryParse(Console.ReadLine(), out int input);
+
+            if (isSuccess) {
+                if (isInstall)
                 {
-                    Console.Clear();
-                    return;
+                    if (input == 0)
+                    {
+                        Console.Clear();
+                        return;
+                    }
+                    else
+                    {
+                        Console.Clear();
+                        InstallManagement(input, status);
+                        isInstall = false;
+                    }
+
                 }
                 else
                 {
-                    Console.Clear();
-                    InstallManagement(input, status);
-                    isInstall = false;
+                    switch (input)
+                    {
+                        case 0:
+                            Console.Clear();
+                            return;
+                        case 1:
+                            isInstall = true;
+                            DisplayIventory(status);
+                            break;
+                        default:
+                            Console.Clear();
+                            Console.WriteLine("잘못된 입력입니다.");
+                            break;
+                    }
                 }
-                    
             }
             else
             {
-                switch (input)
-                {
-                    case 0:
-                        Console.Clear();
-                        return;
-                    case 1:
-                        isInstall = true;
-                        DisplayIventory(status);
-                        break;
-                }
-            }    
+                Console.Clear();
+                Console.WriteLine("잘못된 입력입니다.");
+            }
+             
         }
 
         public void InstallManagement(int input, Status status)
@@ -146,17 +180,38 @@ namespace TextRPG
                 {
                     Console.WriteLine("잘못된 입력입니다.");
                 }
-
-                if (!items[input - 1].isEquip)  // 장착을 안 하고 있는 경우
-                {
-                    // 장착 [E] 표시 추가
-                    items[input - 1].isEquip = true;
-                    Console.WriteLine($"{items[input - 1].itemName}을(를) 장착하였습니다.");
-                }
                 else
                 {
-                    items[input - 1].isEquip = false;
-                    Console.WriteLine($"{items[input - 1].itemName}을(를) 장착 해제하였습니다.");
+                    if (!items[input - 1].isEquip)  // 장착을 안 하고 있는 경우
+                    {
+                        // 장착 [E] 표시 추가
+                        items[input - 1].isEquip = true;
+                        Console.WriteLine($"{items[input - 1].itemName}을(를) 장착하였습니다.");
+                        // 능력치 반영 (더하기)
+                        if (items[input - 1].ability == "공격력")
+                        {
+                            status.offense += items[input - 1].value;
+                        }
+                        else
+                        {
+                            status.defense += items[input - 1].value;
+                        }
+
+                    }
+                    else
+                    {
+                        items[input - 1].isEquip = false;
+                        Console.WriteLine($"{items[input - 1].itemName}을(를) 장착 해제하였습니다.");
+                        // 능력치 반영 (빼기)
+                        if (items[input - 1].ability == "공격력")
+                        {
+                            status.offense -= items[input - 1].value;
+                        }
+                        else
+                        {
+                            status.defense -= items[input - 1].value;
+                        }
+                    }
                 }
             }
             else
@@ -248,7 +303,8 @@ namespace TextRPG
                 price = 2500
             },
         };
-        bool isBuy= false;
+        bool isBuy= false;      // 입점 관리
+        bool isSuccess = false; // 입력 관리
 
         public void DisplayStore(Status status, Inventory inventory)
         {
@@ -274,36 +330,47 @@ namespace TextRPG
             }
             
             Console.WriteLine("원하시는 행동을 입력해 주세요.");
-            int input = int.Parse(Console.ReadLine());
+            isSuccess = int.TryParse(Console.ReadLine(), out int input);
 
-            if (isBuy)
-            {   
-                if (input == 0)
+            if (isSuccess)
+            {
+                if (isBuy)
                 {
-                    Console.Clear();
-                    return;
+                    if (input == 0)
+                    {
+                        Console.Clear();
+                        return;
+                    }
+                    else
+                    {
+                        Console.Clear();
+                        BuyProduct(input, status, ref inventory, ref products);
+                        isBuy = false;
+                    }
                 }
                 else
                 {
-                    Console.Clear();
-                    BuyProduct(input, status, ref inventory, ref products);
-                    isBuy = false;
+                    switch (input)
+                    {
+                        case 0:
+                            Console.Clear();
+                            return;
+                        case 1:
+                            isBuy = true;
+                            DisplayStore(status, inventory);
+                            break;
+                        default:
+                            Console.Clear();
+                            Console.WriteLine("잘못된 입력입니다.");
+                            break;
+                    }
                 }
             }
             else
             {
-                switch (input)
-                {
-                    case 0: 
-                        Console.Clear();
-                        return;
-                    case 1:
-                        isBuy = true;
-                        DisplayStore(status, inventory);
-                        break;
-                }
+                Console.Clear();
+                Console.WriteLine("잘못된 입력입니다.");
             }
-            
         }
 
         public void PrintItem(bool showIndex)
@@ -367,7 +434,6 @@ namespace TextRPG
             }
         }
     }
-
 
     internal class Program
     {
