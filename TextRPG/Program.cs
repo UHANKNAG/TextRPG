@@ -67,7 +67,7 @@ namespace TextRPG
         bool isSuccess = false; // 입력 관리
 
         public struct Item {
-            public bool isEquip;   // 장비를 장착했는가?
+            public bool isEquip;   // 장비 장착 여부
             public string itemName;
             public string ability;
             public int value;
@@ -200,6 +200,7 @@ namespace TextRPG
                     }
                     else
                     {
+                        // 장착 [E] 표시 빼기
                         items[input - 1].isEquip = false;
                         Console.WriteLine($"{items[input - 1].itemName}을(를) 장착 해제하였습니다.");
                         // 능력치 반영 (빼기)
@@ -259,7 +260,7 @@ namespace TextRPG
             },
             new Product
             {
-                isSoldout = true,
+                isSoldout = false,
                 pName = "무쇠갑옷",
                 pAbility = "방어력",
                 pValue = 9,
@@ -295,13 +296,22 @@ namespace TextRPG
             },
             new Product
             {
-                isSoldout = true,
+                isSoldout = false,
                 pName = "스파르타 창",
                 pAbility = "공격력",
                 pValue = 7,
                 pDescription = "스파르타 전사들이 사용한 창입니다.",
                 price = 2500
             },
+            new Product
+            {
+                isSoldout = false,
+                pName = "광선검",
+                pAbility = "공격력",
+                pValue = 20,
+                pDescription = "전설에 나온다는 전설의 검입니다.",
+                price = 2500
+            }
         };
         bool isBuy= false;      // 입점 관리
         bool isSuccess = false; // 입력 관리
