@@ -36,7 +36,7 @@ namespace TextRPG
             Console.WriteLine("0. 나가기\n");
 
             Console.WriteLine("원하시는 행동을 입력해 주세요.");
-            isSuccess = int.TryParse(Console.ReadLine(), out int input);
+            isSuccess = int.TryParse(Console.ReadLine(), out int input); 
 
             if (isSuccess)
             {
@@ -132,6 +132,7 @@ namespace TextRPG
             if (isSuccess) {
                 if (isInstall)
                 {
+                    isInstall = false;
                     if (input == 0)
                     {
                         Console.Clear();
@@ -141,9 +142,7 @@ namespace TextRPG
                     {
                         Console.Clear();
                         InstallManagement(input, status);
-                        isInstall = false;
                     }
-
                 }
                 else
                 {
