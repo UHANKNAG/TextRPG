@@ -14,8 +14,8 @@ namespace TextRPG
         public string job = "전사";
         public float offense = 10f;
         public int defense = 5;
-        public int stamina = 50;
-        public int gold = 30000;
+        public int stamina = 100;
+        public int gold = 3000;
 
         public bool setWeapon = false;
         public bool setArmor = false;
@@ -902,6 +902,7 @@ namespace TextRPG
 
             Console.WriteLine("이름을 입력해 주세요");
             status.name = Console.ReadLine();
+
             Console.WriteLine($"입력하신 이름은 {status.name}입니다.");
             Console.WriteLine();
 
@@ -931,21 +932,27 @@ namespace TextRPG
                         p.isEnd = true;
                         Console.WriteLine("게임을 종료합니다.");
                         break;
+
                     case 1:
                         status.DisplayStatus();
                         break;
+
                     case 2:
                         inventory.DisplayIventory(status);
                         break;
+
                     case 3:
                         store.DisplayStore(status, inventory);
                         break;
+
                     case 4:
                         dungeon.DisplayDungeon(status);
                         break;
+
                     case 5:
                         rest.DisplayRest(status); 
                         break;
+
                     default:
                         Console.Clear();
                         Console.WriteLine("잘못된 입력입니다.\n");
