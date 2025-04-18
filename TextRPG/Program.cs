@@ -17,6 +17,9 @@ namespace TextRPG
         public int stamina = 50;
         public int gold = 30000;
 
+        public bool setWeapon = false;
+        public bool setArmor = false;
+
         public void DisplayStatus()
         {
             bool isSuccess = false; // 입력 관리
@@ -256,34 +259,71 @@ namespace TextRPG
                 {
                     if (!items[input - 1].isEquip)  // 장착을 안 하고 있는 경우
                     {
+                        // 능력치 반영 (더하기)
+                        // 공격력일 경우
+                        if (items[input - 1].ability)
+                        {
+                            if (status.setWeapon)
+                            {
+                                for (int i = 0; i < items.Length; i++)
+                                {
+                                    if (items[i].Equals(default(Item)))
+                                        break;
+
+                                    if(items[i].isEquip && items[i].ability)
+                                    {
+                                        items[i].isEquip = false;
+                                        Uninstall(i, status);
+                                        break;
+                                    } 
+                                }
+
+                            }
+                            status.offense += items[input - 1].value;
+                            status.setWeapon = true;
+                        }
+                        // 방어력일 경우
+                        else
+                        {
+                            if (status.setArmor)
+                            {
+                                for (int i = 0; i < items.Length; i++)
+                                {
+                                    if (items[i].Equals(default(Item)))
+                                        break;
+
+                                    if (items[i].isEquip && !items[i].ability)
+                                    {
+                                        items[i].isEquip = false;
+                                        Uninstall(i, status);
+                                        break;
+                                    }
+                                }
+
+                            }
+                            status.defense += items[input - 1].value;
+                            status.setArmor = true;
+                        }
                         // 장착 [E] 표시 추가
                         items[input - 1].isEquip = true;
                         Console.WriteLine($"{items[input - 1].itemName}을(를) 장착하였습니다.");
-                        // 능력치 반영 (더하기)
-                        if (items[input - 1].ability)
-                        {
-                            status.offense += items[input - 1].value;
-                        }
-                        else
-                        {
-                            status.defense += items[input - 1].value;
-                        }
-
                     }
                     else
                     {
-                        // 장착 [E] 표시 빼기
-                        items[input - 1].isEquip = false;
-                        Console.WriteLine($"{items[input - 1].itemName}을(를) 장착 해제하였습니다.");
-                        // 능력치 반영 (빼기)
-                        if (items[input - 1].ability)
-                        {
-                            status.offense -= items[input - 1].value;
-                        }
-                        else
-                        {
-                            status.defense -= items[input - 1].value;
-                        }
+                        //// 장착 [E] 표시 빼기
+                        //items[input - 1].isEquip = false;
+                        //Console.WriteLine($"{items[input - 1].itemName}을(를) 장착 해제하였습니다.");
+                        //// 능력치 반영 (빼기)
+                        //if (items[input - 1].ability)
+                        //{
+                        //    status.offense -= items[input - 1].value;
+                        //}
+                        //else
+                        //{
+                        //    status.defense -= items[input - 1].value;
+                        //}
+
+                        Uninstall(input - 1, status);
                     }
                 }
             }
@@ -292,7 +332,26 @@ namespace TextRPG
                 Console.Clear();
                 Console.WriteLine("잘못된 입력입니다.");
             }
-        }        
+        }  
+        
+        // 장착 해제 함수
+        public void Uninstall(int input, Status status)
+        {
+            // 장착 [E] 표시 빼기
+            items[input].isEquip = false;
+            Console.WriteLine($"{items[input].itemName}을(를) 장착 해제하였습니다.");
+            // 능력치 반영 (빼기)
+            if (items[input].ability)
+            {
+                status.offense -= items[input].value;
+                status.setWeapon = false;
+            }
+            else
+            {
+                status.defense -= items[input].value;
+                status.setArmor = false;
+            }
+        }
     }
 
     public class Store
@@ -591,31 +650,6 @@ namespace TextRPG
                     }
                 }
 
-                // 인벤토리에서 제거
-                for (int i = 0; i < inventory.items.Length; i++)
-                {
-                    if (inventory.items[i].Equals(default(Item)))
-                    {
-                        break;
-                    }
-
-                    // 삭제가 없고 덮어쓰기 기능
-                    // 내가 삭제를 하지 않아서 계속 뜨는 것...
-                    // 삭제하면 됨
-                    // 근데 그럼 temp도 필요 없을 것 같은데...
-                    if (i == (input - 1))
-                    {
-                        tempItems[i] = inventory.items[i + 1];
-                        Console.WriteLine(tempItems[i]);
-                        Console.WriteLine(inventory.items[i + 1]);
-                    }
-                    else
-                    {
-                        tempItems[i] = inventory.items[i];
-                    }  
-                }
-                inventory.items = tempItems;
-
                 // 상점 입점
                 for (int i = 0; i <= products.Length; i++)
                 {
@@ -624,6 +658,206 @@ namespace TextRPG
                         products[i].isSoldout = false;
                         break;
                     }
+                }
+
+                // 인벤토리에서 제거
+                for (int i = 0; i < inventory.items.Length; i++)
+                {
+                    if (inventory.items[i].Equals(default(Item)))
+                    {
+                        break;
+                    }
+
+                    // 조건 설정 잘할 것
+                    if (i >= (input - 1))
+                    { 
+                        tempItems[i] = inventory.items[i + 1];
+                    }
+                    else
+                    {
+                        tempItems[i] = inventory.items[i];
+                    }  
+                }
+                inventory.items = tempItems;
+            }
+            else
+            {
+                Console.Clear();
+                Console.WriteLine("잘못된 입력입니다.");
+            }
+        }
+    }
+
+    public class Dungeon
+    {
+
+        public void DisplayDungeon(Status status)
+        {
+            Console.Clear();
+            Console.WriteLine("던전 입장");
+            Console.WriteLine("이곳에서 던전의 난이도를 선택할 수 있습니다.");
+            Console.WriteLine();
+
+            Console.WriteLine("1. 쉬운 던전\t\\ 방어력 5 이상 권장");
+            Console.WriteLine("2. 일반 던전\t\\ 방어력 11 이상 권장");
+            Console.WriteLine("3. 어려운 던전\t\\ 방어력 17 이상 권장");
+            Console.WriteLine("0. 나가기");
+            Console.WriteLine();
+
+            Console.WriteLine("원하시는 행동을 입력해 주세요.");
+            bool isSuccess = int.TryParse(Console.ReadLine(), out int input);
+
+            if (isSuccess) { 
+                switch(input)
+                {
+                    case 0:
+                        Console.Clear();
+                        break;
+
+                    case 1: 
+                        Console.Clear(); 
+                        EnterDungeon(input, 5, status);
+                        break;
+
+                    case 2:
+                        Console.Clear();
+                        EnterDungeon(input, 11, status);
+                        break;
+
+                    case 3:
+                        Console.Clear();
+                        EnterDungeon(input, 17, status);
+                        break;
+
+                    default:
+                        Console.Clear();
+                        Console.WriteLine("잘못된 입력입니다.");
+                        break;
+                }
+            }
+            else
+            {
+                Console.Clear();
+                Console.WriteLine("잘못된 입력입니다.");
+            }
+        }
+
+        void EnterDungeon(int input, int recommend, Status status)
+        {
+            int random;
+            int result = status.defense - recommend;
+            int failStamina = 0;
+
+            if (status.defense < recommend)
+            {
+                random = new Random().Next(0, 101);
+
+                // 40%의 확률로 던전 실패
+                // 보상 없고 체력 절반 감소
+                if (random < 40)
+                {
+                    failStamina = status.stamina - (int)(status.stamina * 0.5);
+
+                    Console.WriteLine("던전 실패");
+                    Console.WriteLine($"아쉽습니다. 던전을 실패하였습니다.");
+                    Console.WriteLine();
+
+                    Console.WriteLine("[탐험 결과]");
+                    Console.WriteLine($"체력 {status.stamina} -> {failStamina}");
+                    Console.WriteLine();
+
+                    status.stamina = failStamina;
+                    if (status.stamina <= 0)
+                    {
+                        Console.WriteLine("Game Over");
+                        Environment.Exit(0);
+                    }
+                        
+                    return;
+                }
+                else
+                {
+                    DungeonClear(input, result, status);
+                }
+            }
+            else
+            {
+                DungeonClear(input, result, status);
+            }
+        }
+
+        void DungeonClear(int input, int result, Status status)
+        {
+            int rand;
+            int addReward;
+            float temp;
+            string dungeonName = "";
+            // 던전 클리어 시 받을 보상 계산
+            int reward = 0;
+
+            if (input == 1)
+            {
+                reward = 1000;
+                dungeonName = "쉬운";
+            }
+            else if (input == 2)
+            {
+                reward = 1700;
+                dungeonName = "일반";
+            }
+            else if (input == 3)
+            {
+                reward = 2500;
+                dungeonName = "어려운";
+            }
+
+            addReward = new Random().Next(status.offense, status.offense * 2 + 1);
+
+            temp = reward * addReward * 0.01f;
+            status.gold += (int)temp + reward;
+
+            // 방어력에 따른 체력 소모 반영
+            rand = new Random().Next(20, 36);
+            status.stamina -= rand - result;
+
+            if (status.stamina > 0)
+            {
+                Console.WriteLine("던전 클리어");
+                Console.WriteLine($"축하합니다!!\n{dungeonName} 던전을 클리어 하셨습니다.");
+                Console.WriteLine();
+            }
+            else
+            {
+                Console.WriteLine("Game Over");
+                Console.WriteLine("기력이 다하였습니다.\n");
+            }
+
+            Console.WriteLine("[탐험 결과]");
+            Console.WriteLine($"체력 {status.stamina + rand - result} -> {status.stamina}");
+            Console.WriteLine($"Gold {status.gold - (int)temp - reward} -> {status.gold}");
+            Console.WriteLine();
+
+            if (status.stamina <= 0)
+            {
+                Environment.Exit(0);
+            }
+
+            Console.WriteLine("0. 나가기");
+
+            Console.WriteLine("원하시는 행동을 입력해 주세요.");
+            bool isSuccess = int.TryParse(Console.ReadLine(), out int a);
+            if (isSuccess)
+            {
+                if (input == 0)
+                {
+                    Console.Clear();
+                    return;
+                }
+                else
+                {
+                    Console.Clear();
+                    Console.WriteLine("잘못된 입력입니다.");
+                    return;
                 }
             }
             else
@@ -645,6 +879,7 @@ namespace TextRPG
             Inventory inventory = new Inventory();
             Store store = new Store();
             Rest rest = new Rest(); 
+            Dungeon dungeon = new Dungeon();    
 
             Console.WriteLine("스파르타 마을에 오신 여러분 환영합니다.");
             Console.WriteLine("이곳에서 던전으로 들어가기 전 활동을 할 수 있습니다.\n");
@@ -656,12 +891,12 @@ namespace TextRPG
 
             do
             {
-                StartGame(p, status, inventory, store, rest);
+                StartGame(p, status, inventory, store, rest, dungeon);
             } while (!p.isEnd);
 
         }
 
-        static void StartGame(Program p, Status status, Inventory inventory, Store store, Rest rest)
+        static void StartGame(Program p, Status status, Inventory inventory, Store store, Rest rest, Dungeon dungeon)
         {
             bool isSuccess = false;
 
@@ -690,7 +925,7 @@ namespace TextRPG
                         store.DisplayStore(status, inventory);
                         break;
                     case 4:
-                        // 던전 입장
+                        dungeon.DisplayDungeon(status);
                         break;
                     case 5:
                         rest.DisplayRest(status); 
