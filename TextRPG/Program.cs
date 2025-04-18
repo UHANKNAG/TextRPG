@@ -12,7 +12,7 @@ namespace TextRPG
         public int level = 1;
         public string name = "";
         public string job = "전사";
-        public int offense = 10;
+        public float offense = 10f;
         public int defense = 5;
         public int stamina = 50;
         public int gold = 30000;
@@ -690,6 +690,7 @@ namespace TextRPG
 
     public class Dungeon
     {
+        public int countClear = 0;
 
         public void DisplayDungeon(Status status)
         {
@@ -777,12 +778,15 @@ namespace TextRPG
                 }
                 else
                 {
+                    countClear++;
                     DungeonClear(input, result, status);
                 }
             }
             else
             {
+                countClear++;
                 DungeonClear(input, result, status);
+
             }
         }
 
@@ -811,7 +815,7 @@ namespace TextRPG
                 dungeonName = "어려운";
             }
 
-            addReward = new Random().Next(status.offense, status.offense * 2 + 1);
+            addReward = new Random().Next((int)status.offense, (int)status.offense * 2 + 1);
 
             temp = reward * addReward * 0.01f;
             status.gold += (int)temp + reward;
@@ -824,6 +828,7 @@ namespace TextRPG
             {
                 Console.WriteLine("던전 클리어");
                 Console.WriteLine($"축하합니다!!\n{dungeonName} 던전을 클리어 하셨습니다.");
+                LevelUp(status);
                 Console.WriteLine();
             }
             else
@@ -864,6 +869,17 @@ namespace TextRPG
             {
                 Console.Clear();
                 Console.WriteLine("잘못된 입력입니다.");
+            }
+        }
+
+        public void LevelUp(Status status)
+        {
+            if (status.level == countClear)
+            {
+                status.level++;
+                countClear = 0;
+                status.offense = status.offense + 0.5f;
+                status.defense++;
             }
         }
     }
